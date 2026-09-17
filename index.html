@@ -501,7 +501,7 @@
   <script>
     // --- ADMIN SECURITY CONFIGURATION ---
     // Change this password to whatever secure phrase you like:
-    const ADMIN_PASSCODE = "Divine02072026";
+    const ADMIN_PASSCODE = "divine2026";
 
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
@@ -566,7 +566,7 @@
         return;
       }
       const pass = prompt("Enter Divine IT Admin Passcode:");
-      if (pass === 260301) {
+      if (pass === ADMIN_PASSCODE) {
         sessionStorage.setItem("divine_admin_auth", "true");
         enableAdminState();
         showToast("Authenticated as Administrator!");
