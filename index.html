@@ -8,7 +8,7 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Font Awesome for Enterprise Icons -->
+  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   
   <!-- Google Fonts: Inter & Outfit -->
@@ -43,59 +43,49 @@
   </script>
 
   <style>
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0f172a;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #0284c7;
-      border-radius: 4px;
-    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #0284c7; border-radius: 4px; }
 
-    /* Edit mode highlighting */
-    body.is-editing [contenteditable="true"] {
+    /* Edit mode highlighting - only triggered when authenticated */
+    body.is-admin-editing [contenteditable="true"] {
       outline: 2px dashed #06b6d4 !important;
       outline-offset: 3px;
       cursor: text;
       border-radius: 4px;
       transition: outline-color 0.2s;
     }
-    body.is-editing [contenteditable="true"]:focus {
+    body.is-admin-editing [contenteditable="true"]:focus {
       outline: 2px solid #38bdf8 !important;
-      background-color: rgba(6, 182, 212, 0.08);
+      background-color: rgba(6, 182, 212, 0.12);
     }
     
-    /* Drop zone indicators */
     .drop-zone {
       position: relative;
       transition: all 0.25s ease-in-out;
     }
-    body.is-editing .drop-zone {
-      border: 2px dashed rgba(6, 182, 212, 0.6) !important;
+    body.is-admin-editing .drop-zone {
+      border: 2px dashed rgba(6, 182, 212, 0.7) !important;
+      cursor: pointer;
     }
-    body.is-editing .drop-zone::after {
+    body.is-admin-editing .drop-zone::after {
       content: "Drag & Drop Image or Click";
       position: absolute;
       inset: 0;
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.8);
       color: #38bdf8;
       font-size: 0.85rem;
       font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
       opacity: 0;
       transition: opacity 0.2s ease;
-      cursor: pointer;
       backdrop-filter: blur(2px);
       border-radius: inherit;
       pointer-events: none;
     }
-    body.is-editing .drop-zone:hover::after {
+    body.is-admin-editing .drop-zone:hover::after {
       opacity: 1;
     }
     .drop-zone.drag-over {
@@ -106,59 +96,54 @@
   </style>
 </head>
 
-<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-white">
+<body class="bg-slate-950 text-slate-100 font-sans antialiased selection:bg-cyan-500 selection:text-white pb-12">
 
-  <!-- Admin Live Mode Toolbar -->
-  <aside id="adminBar" class="sticky top-0 z-50 bg-slate-900/95 border-b border-cyan-900/50 backdrop-blur-md px-4 py-2.5 shadow-xl transition-all">
+  <!-- Admin Bar: Hidden by default; only shown when authenticated -->
+  <aside id="adminBar" class="hidden sticky top-0 z-50 bg-slate-900 border-b border-cyan-700/60 backdrop-blur-md px-4 py-2.5 shadow-2xl">
     <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3 text-xs md:text-sm">
       <div class="flex items-center gap-2.5">
-        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
-        <span class="font-semibold text-slate-200">Site Management Bar</span>
-        <span id="modeStatusBadge" class="bg-slate-800 text-slate-400 px-2 py-0.5 rounded text-xs border border-slate-700">Preview Mode</span>
+        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-semibold text-white">Owner Portal</span>
+        <span class="bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded text-xs border border-cyan-800 font-mono">Authenticated</span>
       </div>
 
       <div class="flex items-center flex-wrap gap-2">
-        <!-- Toggle Edit Button -->
         <button id="toggleEditBtn" onclick="toggleEditMode()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition shadow-sm">
           <i class="fa-solid fa-pen-to-square"></i>
           <span>Enable Edit Mode</span>
         </button>
 
-        <!-- Save button -->
         <button onclick="saveSiteEdits()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-medium transition shadow-sm">
           <i class="fa-solid fa-floppy-disk"></i>
           <span>Save Changes</span>
         </button>
 
-        <!-- Reset Button -->
-        <button onclick="resetSiteEdits()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 transition border border-slate-700">
-          <i class="fa-solid fa-rotate-left"></i>
-          <span>Reset</span>
-        </button>
-
-        <!-- Export HTML Button -->
-        <button onclick="exportSiteHtml()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-900/80 hover:bg-sky-800 text-cyan-200 border border-cyan-700/50 transition">
+        <button onclick="exportSiteHtml()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-sky-900 hover:bg-sky-800 text-cyan-200 border border-cyan-700/50 transition">
           <i class="fa-solid fa-download"></i>
           <span>Export HTML</span>
+        </button>
+
+        <button onclick="adminLogout()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-800 hover:bg-red-950 text-slate-300 hover:text-red-300 transition border border-slate-700">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Exit Admin</span>
         </button>
       </div>
     </div>
   </aside>
 
-  <!-- Notification Toast Container -->
+  <!-- Notification Toast -->
   <div id="toastMessage" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 border border-cyan-500 text-white px-5 py-3 rounded-lg shadow-2xl flex items-center gap-3">
-    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
+    <i class="fa-solid fa-circle-check text-cyan-400 text-lg"></i>
     <span id="toastText" class="font-medium text-sm">Action completed</span>
   </div>
 
-  <!-- Hidden file input for click-to-upload fallback -->
   <input type="file" id="globalImageUploader" accept="image/*" class="hidden" />
 
-  <header class="sticky top-[49px] z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-md border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-20">
         
-        <!-- Brand Logo & Name -->
         <a href="#home" class="flex items-center gap-3 group">
           <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-600 to-sky-400 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition duration-300">
             <i class="fa-solid fa-network-wired text-xl"></i>
@@ -173,7 +158,6 @@
           </div>
         </a>
 
-        <!-- Desktop Navigation -->
         <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-300">
           <a href="#home" class="hover:text-cyan-400 transition-colors">Home</a>
           <a href="#about" class="hover:text-cyan-400 transition-colors">About Us</a>
@@ -183,13 +167,12 @@
           <a href="#contact" class="hover:text-cyan-400 transition-colors">Contact</a>
         </nav>
 
-        <!-- CTA Button & Mobile Menu Toggle -->
         <div class="flex items-center gap-4">
-          <a href="#contact" class="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20 hover:from-cyan-400 hover:to-blue-500 transition-all">
+          <a href="#contact" class="hidden sm:inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md hover:from-cyan-400 hover:to-blue-500 transition-all">
             <i class="fa-solid fa-headset mr-2"></i> Request Consultation
           </a>
           
-          <button id="mobileMenuBtn" onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-400 hover:text-white focus:outline-none">
+          <button onclick="toggleMobileMenu()" class="lg:hidden p-2 text-slate-400 hover:text-white">
             <i class="fa-solid fa-bars text-xl"></i>
           </button>
         </div>
@@ -204,21 +187,17 @@
       <a href="#solutions-hub" onclick="toggleMobileMenu()" class="block py-2 hover:text-cyan-400">Infrastructure Hub</a>
       <a href="#projects" onclick="toggleMobileMenu()" class="block py-2 hover:text-cyan-400">Case Studies</a>
       <a href="#contact" onclick="toggleMobileMenu()" class="block py-2 hover:text-cyan-400">Contact Us</a>
-      <div class="pt-2">
-        <a href="#contact" onclick="toggleMobileMenu()" class="w-full text-center block py-2.5 rounded-lg bg-cyan-600 text-white font-medium">Request Consultation</a>
-      </div>
     </div>
   </header>
 
   <main id="editableContentRoot">
+    <!-- Hero Section -->
     <section id="home" class="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 border-b border-slate-900">
-      <!-- Background Ambient Glow -->
       <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-cyan-500/10 blur-[130px] rounded-full pointer-events-none"></div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="grid lg:grid-cols-12 gap-12 items-center">
           
-          <!-- Left Hero Copy -->
           <div class="lg:col-span-7 space-y-6">
             <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-950/80 border border-cyan-800/60 text-cyan-300 text-xs font-semibold uppercase tracking-wider">
               <i class="fa-solid fa-shield-halved"></i>
@@ -237,7 +216,7 @@
             </p>
 
             <div class="flex flex-wrap gap-4 pt-2">
-              <a href="#solutions-hub" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-cyan-600/20 flex items-center gap-2 transition transform hover:-translate-y-0.5">
+              <a href="#solutions-hub" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-cyan-600/20 flex items-center gap-2 transition">
                 <span>Explore Solutions</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </a>
@@ -248,7 +227,6 @@
               </a>
             </div>
 
-            <!-- Mini trust badges -->
             <div class="pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-6 text-xs text-slate-400 font-medium">
               <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-cyan-400"></i> GeM Registered OEM / Vendor</span>
               <span class="flex items-center gap-1.5"><i class="fa-solid fa-check text-cyan-400"></i> Tier III / IV Data Centers</span>
@@ -256,25 +234,18 @@
             </div>
           </div>
 
-          <!-- Right Hero Image with Drag and Drop Zone -->
           <div class="lg:col-span-5">
             <div class="relative group">
-              <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl blur-lg opacity-30 group-hover:opacity-60 transition duration-500"></div>
-              
+              <div class="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-2xl blur-lg opacity-30 group-hover:opacity-50 transition duration-500"></div>
               <div class="relative rounded-2xl bg-slate-900 p-2 border border-slate-800 shadow-2xl">
-                <!-- Drop zone wrapper -->
-                <div class="drop-zone rounded-xl overflow-hidden aspect-[4/3] bg-slate-800 relative cursor-pointer" data-zone-id="hero-banner" onclick="handleZoneClick(this)">
+                <div class="drop-zone rounded-xl overflow-hidden aspect-[4/3] bg-slate-800 relative" data-zone-id="hero-banner" onclick="handleZoneClick(this)">
                   <img 
                     id="img-hero-banner" 
                     src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1200&q=80" 
                     alt="High Tech Data Center Servers" 
-                    class="w-full h-full object-cover object-center transition duration-500 group-hover:scale-105"
+                    class="w-full h-full object-cover object-center"
                     onerror="this.src='https://placehold.co/800x600/0f172a/38bdf8?text=Divine+IT+Data+Center'"
                   />
-                  <!-- Visual overlay label for edit mode -->
-                  <div class="absolute bottom-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-lg border border-slate-800 text-xs font-mono text-cyan-300 pointer-events-none">
-                    <i class="fa-solid fa-camera mr-1"></i> Replace Hero Graphic
-                  </div>
                 </div>
               </div>
             </div>
@@ -284,34 +255,31 @@
       </div>
     </section>
 
+    <!-- Metrics Strip -->
     <section class="bg-slate-900/60 border-y border-slate-800 py-12">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          
           <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80">
             <div class="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-heading editable-text">250+</div>
             <div class="text-xs sm:text-sm text-slate-400 mt-1 font-medium editable-text">Enterprise Deployments</div>
           </div>
-
           <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80">
             <div class="text-3xl sm:text-4xl font-extrabold text-white font-heading editable-text">99.99%</div>
             <div class="text-xs sm:text-sm text-slate-400 mt-1 font-medium editable-text">Core Infrastructure SLA</div>
           </div>
-
           <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80">
             <div class="text-3xl sm:text-4xl font-extrabold text-cyan-400 font-heading editable-text">1,200+</div>
             <div class="text-xs sm:text-sm text-slate-400 mt-1 font-medium editable-text">GeM Contracts Fulfilled</div>
           </div>
-
           <div class="p-4 rounded-xl bg-slate-900/40 border border-slate-800/80">
             <div class="text-3xl sm:text-4xl font-extrabold text-white font-heading editable-text">24/7/365</div>
             <div class="text-xs sm:text-sm text-slate-400 mt-1 font-medium editable-text">NOC & SOC Monitoring</div>
           </div>
-
         </div>
       </div>
     </section>
 
+    <!-- About Section -->
     <section id="about" class="py-20 border-b border-slate-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-12 gap-12 items-center">
@@ -339,162 +307,60 @@
             <p class="text-slate-300 leading-relaxed editable-text">
               We specialize in end-to-end IT lifecycle management: from IT procurement on Government e-Marketplace (GeM) to structured cabling, secure virtualization layers, hybrid cloud orchestration, software-defined WANs, and round-the-clock enterprise support.
             </p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-              <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-slate-800">
-                <i class="fa-solid fa-microchip text-cyan-400 mt-1"></i>
-                <div>
-                  <h4 class="font-semibold text-white text-sm editable-text">Hardware & Server Architecture</h4>
-                  <p class="text-xs text-slate-400 mt-0.5 editable-text">OEM-authorized supplies, rackmount clusters, and SAN/NAS storage.</p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-900/50 border border-slate-800">
-                <i class="fa-solid fa-lock text-cyan-400 mt-1"></i>
-                <div>
-                  <h4 class="font-semibold text-white text-sm editable-text">Zero-Trust Cyber Defense</h4>
-                  <p class="text-xs text-slate-400 mt-0.5 editable-text">Next-Gen Firewalls (NGFW), SIEM, EDR, and compliance frameworks.</p>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div>
       </div>
     </section>
 
+    <!-- Services Grid -->
     <section id="services" class="py-20 bg-slate-950/60 border-b border-slate-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
           <span class="text-cyan-400 text-sm font-semibold tracking-wider uppercase editable-text">Comprehensive Capabilities</span>
           <h2 class="text-3xl sm:text-4xl font-bold font-heading text-white tracking-tight editable-text">
             Enterprise Infrastructure Services
           </h2>
           <p class="text-slate-400 text-sm sm:text-base editable-text">
-            Engineered for high reliability, minimal downtime, and rapid scaling. Click any text to customize or drag-and-drop imagery directly into service cards.
+            Engineered for high reliability, minimal downtime, and rapid scaling across enterprise environments.
           </p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           
-          <!-- Service Card 1 -->
-          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between group">
+          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition flex flex-col justify-between group">
             <div>
               <div class="drop-zone rounded-xl overflow-hidden aspect-[16/9] mb-5 bg-slate-800" data-zone-id="service-card-1" onclick="handleZoneClick(this)">
-                <img id="img-service-card-1" src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80" alt="Data Center & Cloud Setup" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-              </div>
-              <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center mb-4">
-                <i class="fa-solid fa-server"></i>
+                <img id="img-service-card-1" src="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&w=600&q=80" alt="Data Center & Cloud Setup" class="w-full h-full object-cover" />
               </div>
               <h3 class="text-xl font-bold text-white font-heading mb-2 editable-text">Data Center & Hyperconverged Infra</h3>
               <p class="text-slate-300 text-sm leading-relaxed editable-text">
-                Design and deployment of tier-rated data centers, blade servers, hypervisors (VMware, Proxmox, Nutanix), and enterprise storage fabrics with disaster recovery site replication.
+                Design and deployment of tier-rated data centers, blade servers, hypervisors (VMware, Proxmox, Nutanix), and enterprise storage fabrics.
               </p>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-              <span class="editable-text">HCI & SAN Architecture</span>
-              <i class="fa-solid fa-arrow-right"></i>
             </div>
           </div>
 
-          <!-- Service Card 2 -->
-          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between group">
+          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition flex flex-col justify-between group">
             <div>
               <div class="drop-zone rounded-xl overflow-hidden aspect-[16/9] mb-5 bg-slate-800" data-zone-id="service-card-2" onclick="handleZoneClick(this)">
-                <img id="img-service-card-2" src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" alt="Cyber Security Operations" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-              </div>
-              <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center mb-4">
-                <i class="fa-solid fa-shield-virus"></i>
+                <img id="img-service-card-2" src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" alt="Cyber Security Operations" class="w-full h-full object-cover" />
               </div>
               <h3 class="text-xl font-bold text-white font-heading mb-2 editable-text">Managed Cyber Security & SOC</h3>
               <p class="text-slate-300 text-sm leading-relaxed editable-text">
-                Defend your enterprise perimeter with Fortinet, Palo Alto, and Cisco Next-Gen Firewalls, automated vulnerability scanning, IAM policies, and continuous intrusion mitigation.
+                Defend your enterprise perimeter with Fortinet, Palo Alto, and Cisco Next-Gen Firewalls, automated vulnerability scanning, and IAM policies.
               </p>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-              <span class="editable-text">Zero-Trust & Compliance</span>
-              <i class="fa-solid fa-arrow-right"></i>
             </div>
           </div>
 
-          <!-- Service Card 3 -->
-          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between group">
+          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition flex flex-col justify-between group">
             <div>
               <div class="drop-zone rounded-xl overflow-hidden aspect-[16/9] mb-5 bg-slate-800" data-zone-id="service-card-3" onclick="handleZoneClick(this)">
-                <img id="img-service-card-3" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80" alt="Cloud Infrastructure Architecture" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-              </div>
-              <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center mb-4">
-                <i class="fa-solid fa-cloud"></i>
+                <img id="img-service-card-3" src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=600&q=80" alt="Cloud Infrastructure Architecture" class="w-full h-full object-cover" />
               </div>
               <h3 class="text-xl font-bold text-white font-heading mb-2 editable-text">Hybrid Cloud Migration & DevOps</h3>
               <p class="text-slate-300 text-sm leading-relaxed editable-text">
-                Smooth transitions to AWS, Microsoft Azure, Google Cloud, and private enterprise sovereign clouds with automated container orchestration using Kubernetes and Docker.
+                Smooth transitions to AWS, Microsoft Azure, Google Cloud, and private enterprise sovereign clouds with automated container orchestration.
               </p>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-              <span class="editable-text">Multi-Cloud Infrastructure</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </div>
-          </div>
-
-          <!-- Service Card 4 -->
-          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between group">
-            <div>
-              <div class="drop-zone rounded-xl overflow-hidden aspect-[16/9] mb-5 bg-slate-800" data-zone-id="service-card-4" onclick="handleZoneClick(this)">
-                <img id="img-service-card-4" src="https://images.unsplash.com/photo-1520869562399-e772f312f722?auto=format&fit=crop&w=600&q=80" alt="Government Procurement and GeM" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-              </div>
-              <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center mb-4">
-                <i class="fa-solid fa-landmark"></i>
-              </div>
-              <h3 class="text-xl font-bold text-white font-heading mb-2 editable-text">GeM & Government IT Procurement</h3>
-              <p class="text-slate-300 text-sm leading-relaxed editable-text">
-                Certified supplier for Government e-Marketplace (GeM) tenders, offering authorized OEM workstation clusters, networking switches, smart boards, and PSU system integrations.
-              </p>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-              <span class="editable-text">Tender & GeM Delivery</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </div>
-          </div>
-
-          <!-- Service Card 5 -->
-          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between group">
-            <div>
-              <div class="drop-zone rounded-xl overflow-hidden aspect-[16/9] mb-5 bg-slate-800" data-zone-id="service-card-5" onclick="handleZoneClick(this)">
-                <img id="img-service-card-5" src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=600&q=80" alt="Structured Cabling & IoT" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-              </div>
-              <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center mb-4">
-                <i class="fa-solid fa-ethernet"></i>
-              </div>
-              <h3 class="text-xl font-bold text-white font-heading mb-2 editable-text">Enterprise SD-WAN & Structured Cabling</h3>
-              <p class="text-slate-300 text-sm leading-relaxed editable-text">
-                Cat6A, Cat7, and optical fiber backbone layouts for corporate campuses, along with Software-Defined WAN links to unite remote branches with ultra-low latency.
-              </p>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-              <span class="editable-text">Fiber & Campus Wi-Fi 6E</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </div>
-          </div>
-
-          <!-- Service Card 6 -->
-          <div class="bg-slate-900/80 rounded-2xl p-6 border border-slate-800/80 hover:border-cyan-500/50 transition duration-300 flex flex-col justify-between group">
-            <div>
-              <div class="drop-zone rounded-xl overflow-hidden aspect-[16/9] mb-5 bg-slate-800" data-zone-id="service-card-6" onclick="handleZoneClick(this)">
-                <img id="img-service-card-6" src="https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80" alt="Managed IT Services" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
-              </div>
-              <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center mb-4">
-                <i class="fa-solid fa-screwdriver-wrench"></i>
-              </div>
-              <h3 class="text-xl font-bold text-white font-heading mb-2 editable-text">Facility Management (FMS) & AMC</h3>
-              <p class="text-slate-300 text-sm leading-relaxed editable-text">
-                On-premise resident engineers, Annual Maintenance Contracts (AMC), asset lifecycle monitoring, preventative IT servicing, and rapid emergency ticket resolution.
-              </p>
-            </div>
-            <div class="mt-6 pt-4 border-t border-slate-800/60 flex items-center justify-between text-xs text-cyan-400 font-semibold">
-              <span class="editable-text">Dedicated Engineers</span>
-              <i class="fa-solid fa-arrow-right"></i>
             </div>
           </div>
 
@@ -502,6 +368,7 @@
       </div>
     </section>
 
+    <!-- Dynamic Architecture Tabs Hub -->
     <section id="solutions-hub" class="py-20 border-b border-slate-900 bg-slate-900/30">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
@@ -511,33 +378,24 @@
             <h2 class="text-3xl sm:text-4xl font-bold font-heading text-white tracking-tight mt-1 editable-text">
               Specialized Infrastructure Verticals
             </h2>
-            <p class="text-slate-400 text-sm mt-2 editable-text">
-              Select tabs to explore architectures. In Edit Mode, you can edit tab titles, modify descriptions, replace images, or click "Add New Tab".
-            </p>
           </div>
 
-          <!-- Add Tab Button (Visible / active in Edit Mode) -->
-          <div class="flex items-center gap-3">
-            <button onclick="addNewCustomTab()" class="px-4 py-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/40 text-cyan-300 border border-cyan-500/40 text-xs font-semibold flex items-center gap-2 transition">
+          <!-- Add tab only accessible to admin -->
+          <div id="adminTabActions" class="hidden">
+            <button onclick="addNewCustomTab()" class="px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold flex items-center gap-2 transition">
               <i class="fa-solid fa-folder-plus"></i>
               <span>Add Custom Tab</span>
             </button>
           </div>
         </div>
 
-        <!-- Tab Headers Navigation -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-4 border-b border-slate-800 no-scrollbar" id="tabNavContainer">
-          <!-- Dynamic tabs injected by JS -->
-        </div>
-
-        <!-- Tab Content Body -->
-        <div id="tabContentPanel" class="mt-8 bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-10 transition-all duration-300">
-          <!-- Injected dynamically -->
-        </div>
+        <div class="flex items-center gap-2 overflow-x-auto pb-4 border-b border-slate-800" id="tabNavContainer"></div>
+        <div id="tabContentPanel" class="mt-8 bg-slate-900/70 border border-slate-800 rounded-3xl p-6 sm:p-10"></div>
 
       </div>
     </section>
 
+    <!-- Case Studies -->
     <section id="projects" class="py-20 border-b border-slate-900">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
@@ -545,167 +403,79 @@
           <h2 class="text-3xl sm:text-4xl font-bold font-heading text-white tracking-tight editable-text">
             Enterprise Case Studies
           </h2>
-          <p class="text-slate-400 text-sm sm:text-base editable-text">
-            Explore recent digital transformation and IT modernization contracts executed with zero downtime.
-          </p>
         </div>
 
-        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          
-          <!-- Case Study 1 -->
-          <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden group">
+        <div class="grid md:grid-cols-3 gap-8">
+          <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden">
             <div class="drop-zone aspect-[16/10] bg-slate-800" data-zone-id="project-case-1" onclick="handleZoneClick(this)">
-              <img id="img-project-case-1" src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="PSU Modernization Project" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <img id="img-project-case-1" src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80" alt="PSU Modernization" class="w-full h-full object-cover" />
             </div>
-            <div class="p-6 space-y-3">
-              <span class="px-2.5 py-1 rounded bg-blue-950 text-blue-300 border border-blue-800/60 text-xs font-semibold editable-text">Government & GeM</span>
+            <div class="p-6 space-y-2">
               <h3 class="text-lg font-bold text-white font-heading editable-text">PSU Headquarters Core Network Revamp</h3>
-              <p class="text-slate-400 text-xs sm:text-sm leading-relaxed editable-text">
-                Turnkey rollout of high-density Cisco optical switches, dual-redundant power units, and 10Gbps fiber rings across 12 branch campuses in record timeframe.
-              </p>
+              <p class="text-slate-400 text-xs sm:text-sm editable-text">Turnkey rollout of high-density optical switches and 10Gbps rings across branch campuses.</p>
             </div>
           </div>
 
-          <!-- Case Study 2 -->
-          <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden group">
+          <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden">
             <div class="drop-zone aspect-[16/10] bg-slate-800" data-zone-id="project-case-2" onclick="handleZoneClick(this)">
-              <img id="img-project-case-2" src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Banking Cloud Deployment" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <img id="img-project-case-2" src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=800&q=80" alt="Banking Cloud" class="w-full h-full object-cover" />
             </div>
-            <div class="p-6 space-y-3">
-              <span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60 text-xs font-semibold editable-text">BFSI Sector</span>
+            <div class="p-6 space-y-2">
               <h3 class="text-lg font-bold text-white font-heading editable-text">Private Financial Cloud & Disaster Recovery</h3>
-              <p class="text-slate-400 text-xs sm:text-sm leading-relaxed editable-text">
-                Engineered an air-gapped Nutanix hyperconverged cluster with sub-second RPO database clustering compliant with strict regulatory frameworks.
-              </p>
+              <p class="text-slate-400 text-xs sm:text-sm editable-text">Engineered hyperconverged sub-second RPO database clustering compliant with strict regulations.</p>
             </div>
           </div>
 
-          <!-- Case Study 3 -->
-          <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden group">
+          <div class="bg-slate-900/50 rounded-2xl border border-slate-800 overflow-hidden">
             <div class="drop-zone aspect-[16/10] bg-slate-800" data-zone-id="project-case-3" onclick="handleZoneClick(this)">
-              <img id="img-project-case-3" src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80" alt="Healthcare Smart IT" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+              <img id="img-project-case-3" src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=800&q=80" alt="Healthcare Smart IT" class="w-full h-full object-cover" />
             </div>
-            <div class="p-6 space-y-3">
-              <span class="px-2.5 py-1 rounded bg-purple-950 text-purple-300 border border-purple-800/60 text-xs font-semibold editable-text">Smart Healthcare</span>
+            <div class="p-6 space-y-2">
               <h3 class="text-lg font-bold text-white font-heading editable-text">Multi-Specialty Hospital IoT & Wi-Fi 6</h3>
-              <p class="text-slate-400 text-xs sm:text-sm leading-relaxed editable-text">
-                Implemented 350+ medical telemetry secure endpoints with isolated VLAN priority routing and uninterruptible smart micro-UPS systems.
-              </p>
+              <p class="text-slate-400 text-xs sm:text-sm editable-text">Implemented 350+ medical telemetry secure endpoints with isolated VLAN priority routing.</p>
             </div>
           </div>
-
         </div>
       </div>
     </section>
 
-    <section id="contact" class="py-20 relative bg-slate-950">
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-slate-950">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid lg:grid-cols-12 gap-12">
           
-          <!-- Contact Details -->
-          <div class="lg:col-span-5 space-y-8">
-            <div>
-              <span class="text-cyan-400 text-sm font-semibold tracking-wider uppercase editable-text">Connect With Us</span>
-              <h2 class="text-3xl sm:text-4xl font-bold font-heading text-white tracking-tight mt-1 editable-text">
-                Let's Discuss Your Infrastructure Strategy
-              </h2>
-              <p class="text-slate-400 text-sm sm:text-base mt-3 editable-text">
-                Reach out to Divine IT Infrastructure Private Limited for technical procurement, vendor empanelment, tenders, and bespoke IT consulting.
-              </p>
-            </div>
+          <div class="lg:col-span-5 space-y-6">
+            <span class="text-cyan-400 text-sm font-semibold tracking-wider uppercase editable-text">Connect With Us</span>
+            <h2 class="text-3xl sm:text-4xl font-bold font-heading text-white tracking-tight editable-text">
+              Let's Discuss Your Infrastructure Strategy
+            </h2>
+            <p class="text-slate-400 text-sm editable-text">
+              Reach out to Divine IT Infrastructure Private Limited for technical procurement, vendor empanelment, tenders, and IT consulting.
+            </p>
 
-            <div class="space-y-4">
-              <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
-                <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center shrink-0">
-                  <i class="fa-solid fa-location-dot"></i>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-white text-sm editable-text">Corporate Office</h4>
-                  <p class="text-xs text-slate-300 mt-1 editable-text">
-                    Divine IT Infrastructure Private Limited<br />
-                    Technology Park, IT Corridor, Sector 62,<br />
-                    Noida / Delhi NCR & Regional Support Hubs Across India
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
-                <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center shrink-0">
-                  <i class="fa-solid fa-envelope"></i>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-white text-sm editable-text">Official Email Communications</h4>
-                  <p class="text-xs text-slate-300 mt-1 editable-text">
-                    Sales & GeM Enquiries: contact@divineitinfra.com<br />
-                    Enterprise Support: support@divineitinfra.com
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex items-start gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
-                <div class="w-10 h-10 rounded-lg bg-cyan-950 border border-cyan-800 text-cyan-400 flex items-center justify-center shrink-0">
-                  <i class="fa-solid fa-phone"></i>
-                </div>
-                <div>
-                  <h4 class="font-semibold text-white text-sm editable-text">Direct Helplines</h4>
-                  <p class="text-xs text-slate-300 mt-1 editable-text">
-                    General Inquiries: +91 (011) 4892-0000<br />
-                    Emergency NOC Dispatch: +91 98100 00000
-                  </p>
-                </div>
+            <div class="space-y-4 pt-2">
+              <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+                <h4 class="font-semibold text-white text-sm editable-text">Official Email Communications</h4>
+                <p class="text-xs text-slate-300 mt-1 editable-text">contact@divineitinfra.in</p>
               </div>
             </div>
           </div>
 
-          <!-- Interactive Contact Form -->
           <div class="lg:col-span-7">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 sm:p-10 shadow-2xl">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl">
               <h3 class="text-2xl font-bold font-heading text-white mb-2 editable-text">Submit Project Requirement</h3>
-              <p class="text-slate-400 text-xs sm:text-sm mb-6 editable-text">Our enterprise architecture team typically responds within 2 hours during business schedules.</p>
-              
-              <form id="consultationForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+              <form onsubmit="handleFormSubmit(event)" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Your Full Name *</label>
-                    <input type="text" required placeholder="e.g. Rajesh Sharma" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Company / Department *</label>
-                    <input type="text" required placeholder="e.g. Ministry / Enterprise Ltd" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition" />
-                  </div>
+                  <input type="text" required placeholder="Full Name *" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm" />
+                  <input type="text" required placeholder="Company / Organization *" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm" />
                 </div>
-
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Work Email Address *</label>
-                    <input type="email" required placeholder="name@company.com" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition" />
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Contact Phone Number *</label>
-                    <input type="tel" required placeholder="+91 98765 43210" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition" />
-                  </div>
+                  <input type="email" required placeholder="Email Address *" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm" />
+                  <input type="tel" required placeholder="Phone Number *" class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm" />
                 </div>
-
-                <div>
-                  <label class="block text-xs font-semibold text-slate-300 mb-1">Primary IT Requirement</label>
-                  <select class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition">
-                    <option>Data Center / Hyperconverged Infra Build</option>
-                    <option>Government e-Marketplace (GeM) Procurement</option>
-                    <option>Next-Gen Cyber Security & SOC Monitoring</option>
-                    <option>Hybrid Cloud & Azure/AWS Migration</option>
-                    <option>Annual Maintenance Contract (AMC) & FMS</option>
-                    <option>Structured Optical Fiber & LAN Setup</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-xs font-semibold text-slate-300 mb-1">Scope Details or BOQ Summary</label>
-                  <textarea rows="4" placeholder="Briefly describe required servers, licensing, timeline or procurement criteria..." class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm focus:outline-none focus:border-cyan-400 transition"></textarea>
-                </div>
-
-                <button type="submit" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm shadow-lg shadow-cyan-600/30 transition flex items-center justify-center gap-2">
-                  <i class="fa-solid fa-paper-plane"></i>
-                  <span>Submit Enterprise Inquiry</span>
+                <textarea rows="4" placeholder="Scope details, server specs or BOQ summary..." class="w-full px-4 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm"></textarea>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-sm transition">
+                  Submit Enterprise Inquiry
                 </button>
               </form>
             </div>
@@ -716,89 +486,29 @@
     </section>
   </main>
 
-  <footer class="bg-slate-950 border-t border-slate-800 pt-16 pb-8 text-slate-400 text-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800/80">
-        
-        <!-- Company Identity -->
-        <div class="lg:col-span-2 space-y-4">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-sky-400 flex items-center justify-center text-white shadow-md">
-              <i class="fa-solid fa-network-wired text-lg"></i>
-            </div>
-            <div>
-              <span class="font-heading font-extrabold text-lg text-white block">DIVINE <span class="text-cyan-400">IT</span></span>
-              <span class="text-[9px] tracking-wider text-slate-400 uppercase font-semibold block -mt-1">Infrastructure Private Limited</span>
-            </div>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-400 max-w-sm editable-text">
-            Divine IT Infrastructure Private Limited delivers turnkey digital solutions, certified hardware distribution, high-capacity enterprise networks, and cloud computing infrastructures for India's leading organizations.
-          </p>
-          <div class="flex items-center gap-3 pt-2">
-            <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:text-cyan-400 hover:border-cyan-500 flex items-center justify-center transition"><i class="fa-brands fa-linkedin-in text-xs"></i></a>
-            <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:text-cyan-400 hover:border-cyan-500 flex items-center justify-center transition"><i class="fa-brands fa-x-twitter text-xs"></i></a>
-            <a href="#" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 hover:text-cyan-400 hover:border-cyan-500 flex items-center justify-center transition"><i class="fa-brands fa-facebook-f text-xs"></i></a>
-          </div>
-        </div>
-
-        <!-- Solutions Quicklinks -->
-        <div>
-          <h4 class="text-white font-semibold text-sm mb-4 font-heading editable-text">Solutions</h4>
-          <ul class="space-y-2 text-xs">
-            <li><a href="#solutions-hub" class="hover:text-cyan-400 transition">Hybrid Cloud Hub</a></li>
-            <li><a href="#services" class="hover:text-cyan-400 transition">Data Center HCI</a></li>
-            <li><a href="#services" class="hover:text-cyan-400 transition">SOC & Cyber Defense</a></li>
-            <li><a href="#solutions-hub" class="hover:text-cyan-400 transition">Government Procurement</a></li>
-            <li><a href="#services" class="hover:text-cyan-400 transition">Optical Cabling</a></li>
-          </ul>
-        </div>
-
-        <!-- Company Quicklinks -->
-        <div>
-          <h4 class="text-white font-semibold text-sm mb-4 font-heading editable-text">Company</h4>
-          <ul class="space-y-2 text-xs">
-            <li><a href="#about" class="hover:text-cyan-400 transition">About Company</a></li>
-            <li><a href="#projects" class="hover:text-cyan-400 transition">Client Case Studies</a></li>
-            <li><a href="#home" class="hover:text-cyan-400 transition">Quality & Certifications</a></li>
-            <li><a href="#contact" class="hover:text-cyan-400 transition">Careers & OEM Tie-ups</a></li>
-            <li><a href="#contact" class="hover:text-cyan-400 transition">Contact Headquarters</a></li>
-          </ul>
-        </div>
-
-        <!-- Compliance & GeM -->
-        <div>
-          <h4 class="text-white font-semibold text-sm mb-4 font-heading editable-text">Accreditation</h4>
-          <p class="text-xs text-slate-400 mb-3 editable-text">Registered with Government of India Ministry of Corporate Affairs (MCA) & GeM SPV.</p>
-          <div class="space-y-1.5 text-xs text-cyan-300 font-mono">
-            <div class="editable-text">• ISO 9001:2015</div>
-            <div class="editable-text">• ISO 27001:2022</div>
-            <div class="editable-text">• MSME Verified</div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- Copyright Bar -->
-      <div class="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-        <p class="editable-text">&copy; <span id="currentYear"></span> Divine IT Infrastructure Private Limited. All rights reserved.</p>
-        <div class="flex items-center gap-6">
-          <a href="#" class="hover:text-slate-400 transition">Privacy Policy</a>
-          <a href="#" class="hover:text-slate-400 transition">Terms of Service</a>
-          <a href="#" class="hover:text-slate-400 transition">SLA Disclosures</a>
-        </div>
-      </div>
+  <footer class="bg-slate-950 border-t border-slate-800 pt-8 pb-8 text-slate-500 text-xs">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="editable-text">&copy; <span id="currentYear"></span> Divine IT Infrastructure Private Limited. All rights reserved.</p>
+      
+      <!-- Discreet Admin Trigger Button -->
+      <button onclick="promptAdminLogin()" class="text-slate-600 hover:text-cyan-400 transition flex items-center gap-1">
+        <i class="fa-solid fa-lock text-[10px]"></i>
+        <span>Admin</span>
+      </button>
     </div>
   </footer>
 
   <script>
-    // Set Year
+    // --- ADMIN SECURITY CONFIGURATION ---
+    // Change this password to whatever secure phrase you like:
+    const ADMIN_PASSCODE = "Divine02072026";
+
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
-    // State Variables
+    let isAdmin = false;
     let isEditMode = false;
     let activeZoneForUpload = null;
 
-    // Tabs Data Model (Fully customizable and editable)
     let tabsData = [
       {
         id: "tab-cloud",
@@ -806,11 +516,11 @@
         icon: "fa-cloud",
         title: "Resilient Hybrid & Multi-Cloud Infrastructures",
         tagline: "Scalable compute, high availability, and secure multi-region failover",
-        description: "Divine IT Infrastructure architects hybrid ecosystems pairing on-premise security with public cloud agility. We leverage automated CI/CD pipelines, Kubernetes container pods, and sub-millisecond cloud interconnects for uninterrupted workload scalability.",
+        description: "Divine IT Infrastructure architects hybrid ecosystems pairing on-premise security with public cloud agility. We deploy automated CI/CD pipelines and sovereign cloud setups.",
         features: [
           "Enterprise Azure, AWS, and Sovereign Cloud Deployments",
           "Automated Infrastructure as Code (Terraform / Ansible)",
-          "Disaster Recovery as a Service (DRaaS) with zero data loss",
+          "Disaster Recovery as a Service (DRaaS)",
           "Cloud Cost Optimization & FinOps Governance"
         ],
         image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80"
@@ -821,12 +531,12 @@
         icon: "fa-server",
         title: "Next-Gen Hyperconverged Data Centers",
         tagline: "Ultra-dense computing fabrics designed for 99.999% continuity",
-        description: "From precision environmental cooling to clustered SAN architectures, we design turnkey private data center nodes. Divine IT provides certified rackmount servers, leaf-spine network fabrics, and NVMe-over-Fabrics storage arrays.",
+        description: "Turnkey private data center nodes, clustered SAN architectures, blade servers, and leaf-spine network fabrics.",
         features: [
           "VMware vSphere & Nutanix Enterprise Cloud clusters",
           "High-density hot/cold aisle containment systems",
           "Software-defined high capacity SAN/NAS backbones",
-          "Automated tape & cloud air-gapped backup systems"
+          "Automated air-gapped backup systems"
         ],
         image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1000&q=80"
       },
@@ -836,70 +546,103 @@
         icon: "fa-landmark",
         title: "Government e-Marketplace (GeM) & PSU Delivery",
         tagline: "Authorized delivery partner for public sector IT contracts across India",
-        description: "We are an experienced government contractor facilitating official procurement via the GeM SPV platform. We supply OEM-certified computing, high-performance network switches, interactive display systems, and command center infrastructure with full compliance.",
+        description: "Authorized supplier for Government e-Marketplace (GeM) tenders, offering workstations, switches, and PSU system integrations.",
         features: [
-          "Direct GeM catalog availability and customized BoQ drafting",
-          "Pan-India localized warranty fulfillment and spares supply",
-          "Compliance with Make in India (MII) and STQC certifications",
-          "Dedicated government liaison and tender execution team"
+          "Direct GeM catalog availability and custom BoQ drafting",
+          "Pan-India localized warranty fulfillment",
+          "Compliance with Make in India (MII) certifications",
+          "Dedicated government tender execution team"
         ],
         image: "https://images.unsplash.com/photo-1520869562399-e772f312f722?auto=format&fit=crop&w=1000&q=80"
-      },
-      {
-        id: "tab-security",
-        name: "Network & Cyber Security",
-        icon: "fa-shield-halved",
-        title: "Zero-Trust Defense & 24/7 Threat Protection",
-        tagline: "Proactive defense against ransomware, data breaches, and APT attacks",
-        description: "Security is built into every layer of Divine IT Infrastructure. We deploy enterprise firewalls, endpoint detection and response (EDR), and encrypted SD-WAN topologies that guarantee strict segmentation across branches and headquarters.",
-        features: [
-          "Fortinet, Palo Alto & CheckPoint NGFW implementations",
-          "Zero Trust Network Access (ZTNA) with multi-factor authentication",
-          "24/7 Security Operations Center (SOC) log ingestion & SIEM",
-          "Automated vulnerability assessment and penetration testing (VAPT)"
-        ],
-        image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=1000&q=80"
-      },
-      {
-        id: "tab-fms",
-        name: "Managed Support & AMC",
-        icon: "fa-headset",
-        title: "Comprehensive Facility Management & AMC",
-        tagline: "On-site certified engineers and guaranteed uptime resolution",
-        description: "Eliminate downtime risks with Divine IT's comprehensive Annual Maintenance Contracts. Our L1/L2/L3 engineers are positioned on-site or dispatched on demand to ensure mission-critical hardware runs without interruptions.",
-        features: [
-          "Dedicated Resident Network & Systems Engineers",
-          "2-Hour On-site Critical Spares Replacement SLA",
-          "Preventative maintenance & thermal health audits",
-          "Centralized ITIL-compliant ticketing and automated reporting"
-        ],
-        image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1000&q=80"
       }
     ];
 
     let activeTabId = tabsData[0].id;
+
+    // Admin Authentication Flow
+    function promptAdminLogin() {
+      if (isAdmin) {
+        showToast("Admin session is already active.");
+        return;
+      }
+      const pass = prompt("Enter Divine IT Admin Passcode:");
+      if (pass === 260301) {
+        sessionStorage.setItem("divine_admin_auth", "true");
+        enableAdminState();
+        showToast("Authenticated as Administrator!");
+      } else if (pass !== null) {
+        alert("Incorrect passcode.");
+      }
+    }
+
+    function enableAdminState() {
+      isAdmin = true;
+      document.getElementById('adminBar').classList.remove('hidden');
+      document.getElementById('adminTabActions').classList.remove('hidden');
+      renderTabs();
+    }
+
+    function adminLogout() {
+      sessionStorage.removeItem("divine_admin_auth");
+      isAdmin = false;
+      if (isEditMode) toggleEditMode();
+      document.getElementById('adminBar').classList.add('hidden');
+      document.getElementById('adminTabActions').classList.add('hidden');
+      renderTabs();
+      showToast("Logged out of Admin Portal.");
+    }
+
+    // Keyboard shortcut for quick owner login: Ctrl + Shift + E
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'e') {
+        e.preventDefault();
+        promptAdminLogin();
+      }
+    });
+
+    function toggleEditMode() {
+      if (!isAdmin) return;
+      isEditMode = !isEditMode;
+      const body = document.body;
+      const toggleBtn = document.getElementById('toggleEditBtn');
+
+      if (isEditMode) {
+        body.classList.add('is-admin-editing');
+        toggleBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition shadow-sm";
+        toggleBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>Editing Enabled</span>';
+
+        document.querySelectorAll('.editable-text').forEach(el => el.setAttribute('contenteditable', 'true'));
+        enableTabEditingListeners();
+        showToast("Edit mode active. Click any text or drag-and-drop photos.");
+      } else {
+        body.classList.remove('is-admin-editing');
+        toggleBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition shadow-sm";
+        toggleBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i><span>Enable Edit Mode</span>';
+
+        document.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
+        showToast("Switched to Preview Mode.");
+      }
+      renderTabs();
+    }
 
     function renderTabs() {
       const navContainer = document.getElementById('tabNavContainer');
       const panel = document.getElementById('tabContentPanel');
       if (!navContainer || !panel) return;
 
-      // Render tab buttons
       navContainer.innerHTML = '';
       tabsData.forEach((tab) => {
         const isActive = tab.id === activeTabId;
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = `px-5 py-3 rounded-xl font-medium text-xs sm:text-sm whitespace-nowrap transition-all duration-200 flex items-center gap-2.5 ${
-          isActive 
-            ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/25' 
-            : 'bg-slate-900/90 text-slate-400 hover:text-white hover:bg-slate-800'
+          isActive ? 'bg-cyan-500 text-white shadow-lg' : 'bg-slate-900 text-slate-400 hover:text-white'
         }`;
         
         btn.innerHTML = `
           <i class="fa-solid ${tab.icon}"></i>
-          <span class="${isEditMode ? 'editable-tab-name' : ''}" data-tab-id="${tab.id}">${tab.name}</span>
-          ${isEditMode && tabsData.length > 1 ? `<span onclick="event.stopPropagation(); deleteTab('${tab.id}')" class="ml-1 text-slate-300 hover:text-red-400 p-0.5 rounded cursor-pointer" title="Delete tab"><i class="fa-solid fa-xmark text-xs"></i></span>` : ''}
+          <span class="${isEditMode && isAdmin ? 'editable-tab-name' : ''}" data-tab-id="${tab.id}">${tab.name}</span>
+          ${isEditMode && isAdmin && tabsData.length > 1 ? `<span onclick="event.stopPropagation(); deleteTab('${tab.id}')" class="ml-1 hover:text-red-400"><i class="fa-solid fa-xmark"></i></span>` : ''}
         `;
         
         btn.onclick = () => {
@@ -910,10 +653,8 @@
         navContainer.appendChild(btn);
       });
 
-      // Find active tab data
       const currentTab = tabsData.find(t => t.id === activeTabId) || tabsData[0];
 
-      // Render active panel
       panel.innerHTML = `
         <div class="grid lg:grid-cols-12 gap-8 items-center">
           <div class="lg:col-span-7 space-y-4">
@@ -922,7 +663,7 @@
             <p class="text-slate-300 text-sm leading-relaxed editable-tab-field" data-field="description">${currentTab.description}</p>
             
             <div class="pt-2">
-              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3">Key Technical Highlights:</h4>
+              <h4 class="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3">Key Highlights:</h4>
               <ul class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
                 ${currentTab.features.map((feat, idx) => `
                   <li class="flex items-start gap-2 bg-slate-800/60 p-2.5 rounded-lg border border-slate-700/50">
@@ -936,44 +677,36 @@
 
           <div class="lg:col-span-5">
             <div class="drop-zone rounded-2xl overflow-hidden aspect-[4/3] bg-slate-800 border border-slate-700 shadow-xl" data-zone-id="tab-zone-${currentTab.id}" onclick="handleZoneClick(this)">
-              <img id="img-tab-zone-${currentTab.id}" src="${currentTab.image}" alt="${currentTab.name}" class="w-full h-full object-cover" onerror="this.src='https://placehold.co/800x600/0f172a/38bdf8?text=Divine+IT+Architecture'" />
+              <img id="img-tab-zone-${currentTab.id}" src="${currentTab.image}" alt="${currentTab.name}" class="w-full h-full object-cover" />
             </div>
           </div>
         </div>
       `;
 
-      // Apply editable attributes if currently in Edit Mode
-      if (isEditMode) {
-        enableTabEditingListeners();
-      }
+      if (isEditMode && isAdmin) enableTabEditingListeners();
       setupDropZones();
     }
 
     function addNewCustomTab() {
+      if (!isAdmin) return;
       const newId = "tab-custom-" + Date.now();
-      const count = tabsData.length + 1;
       tabsData.push({
         id: newId,
-        name: `Custom Vertical ${count}`,
+        name: `Custom Tab ${tabsData.length + 1}`,
         icon: "fa-layer-group",
-        title: `Enterprise Solution Module ${count}`,
-        tagline: "Tailored Architecture & Engineering",
-        description: "Click to write your custom engineering capabilities, service metrics, and hardware requirements for this vertical.",
-        features: [
-          "Enterprise Specification Highlight 1",
-          "Continuous Monitoring & Uptime SLA",
-          "Dedicated Hardware Provisions",
-          "Certified Technical Deployment"
-        ],
+        title: "Enterprise Custom Architecture",
+        tagline: "Tailored Infrastructure Solution",
+        description: "Click to write your custom capability specifications and SLA details.",
+        features: ["High Capacity Core Routing", "24/7 Monitoring & Escalation", "Dedicated Spares Pool", "OEM Certified Engineers"],
         image: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80"
       });
       activeTabId = newId;
       renderTabs();
-      showToast("New editable tab added!");
+      showToast("New tab created.");
     }
 
     function deleteTab(id) {
-      if (tabsData.length <= 1) return;
+      if (!isAdmin || tabsData.length <= 1) return;
       tabsData = tabsData.filter(t => t.id !== id);
       activeTabId = tabsData[0].id;
       renderTabs();
@@ -981,17 +714,14 @@
     }
 
     function enableTabEditingListeners() {
-      // Make tab names editable
       document.querySelectorAll('.editable-tab-name').forEach(el => {
         el.setAttribute('contenteditable', 'true');
         el.addEventListener('blur', (e) => {
-          const tabId = e.target.getAttribute('data-tab-id');
-          const tab = tabsData.find(t => t.id === tabId);
+          const tab = tabsData.find(t => t.id === e.target.getAttribute('data-tab-id'));
           if (tab) tab.name = e.target.innerText.trim();
         });
       });
 
-      // Make tab content fields editable
       document.querySelectorAll('.editable-tab-field').forEach(el => {
         el.setAttribute('contenteditable', 'true');
         el.addEventListener('blur', (e) => {
@@ -1001,67 +731,52 @@
         });
       });
 
-      // Make tab features editable
       document.querySelectorAll('.editable-tab-feature').forEach(el => {
         el.setAttribute('contenteditable', 'true');
         el.addEventListener('blur', (e) => {
           const idx = parseInt(e.target.getAttribute('data-index'));
           const tab = tabsData.find(t => t.id === activeTabId);
-          if (tab && tab.features && !isNaN(idx)) {
-            tab.features[idx] = e.target.innerText.trim();
-          }
+          if (tab && tab.features && !isNaN(idx)) tab.features[idx] = e.target.innerText.trim();
         });
       });
     }
 
     function setupDropZones() {
-      const dropZones = document.querySelectorAll('.drop-zone');
-      dropZones.forEach(zone => {
-        // Remove prior event listeners through cloning
+      document.querySelectorAll('.drop-zone').forEach(zone => {
         const newZone = zone.cloneNode(true);
         zone.parentNode.replaceChild(newZone, zone);
 
         newZone.addEventListener('dragover', (e) => {
+          if (!isEditMode || !isAdmin) return;
           e.preventDefault();
-          e.stopPropagation();
           newZone.classList.add('drag-over');
         });
 
         newZone.addEventListener('dragleave', (e) => {
+          if (!isEditMode || !isAdmin) return;
           e.preventDefault();
-          e.stopPropagation();
           newZone.classList.remove('drag-over');
         });
 
         newZone.addEventListener('drop', (e) => {
+          if (!isEditMode || !isAdmin) return;
           e.preventDefault();
-          e.stopPropagation();
           newZone.classList.remove('drag-over');
-
-          const files = e.dataTransfer.files;
-          if (files && files.length > 0) {
-            handleImageFile(files[0], newZone);
-          }
-        });
-
-        newZone.addEventListener('click', () => {
-          if (isEditMode) {
-            activeZoneForUpload = newZone;
-            document.getElementById('globalImageUploader').click();
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleImageFile(e.dataTransfer.files[0], newZone);
           }
         });
       });
     }
 
     function handleZoneClick(zone) {
-      if (isEditMode) {
+      if (isEditMode && isAdmin) {
         activeZoneForUpload = zone;
         document.getElementById('globalImageUploader').click();
       }
     }
 
-    // Global file upload change listener
-    document.getElementById('globalImageUploader').addEventListener('change', function(e) {
+    document.getElementById('globalImageUploader').addEventListener('change', function() {
       if (this.files && this.files.length > 0 && activeZoneForUpload) {
         handleImageFile(this.files[0], activeZoneForUpload);
       }
@@ -1069,145 +784,57 @@
 
     function handleImageFile(file, targetZone) {
       if (!file.type.startsWith('image/')) {
-        showToast('Please upload a valid image file (PNG, JPG, WebP, SVG).');
+        showToast('Please upload an image file.');
         return;
       }
-
       const reader = new FileReader();
       reader.onload = function(event) {
         const dataUrl = event.target.result;
         const img = targetZone.querySelector('img');
         if (img) {
           img.src = dataUrl;
-          
-          // If this is a tab zone, update data model as well
           const zoneId = targetZone.getAttribute('data-zone-id');
           if (zoneId && zoneId.startsWith('tab-zone-')) {
-            const tabId = zoneId.replace('tab-zone-', '');
-            const tab = tabsData.find(t => t.id === tabId);
+            const tab = tabsData.find(t => t.id === zoneId.replace('tab-zone-', ''));
             if (tab) tab.image = dataUrl;
           }
-
-          showToast('Image replaced successfully!');
+          showToast('Image replaced!');
         }
       };
       reader.readAsDataURL(file);
     }
 
-    function toggleEditMode() {
-      isEditMode = !isEditMode;
-      const body = document.body;
-      const toggleBtn = document.getElementById('toggleEditBtn');
-      const badge = document.getElementById('modeStatusBadge');
-
-      if (isEditMode) {
-        body.classList.add('is-editing');
-        toggleBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition shadow-sm";
-        toggleBtn.innerHTML = '<i class="fa-solid fa-check"></i><span>Editing Enabled</span>';
-        badge.className = "bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded text-xs border border-cyan-800 font-semibold";
-        badge.textContent = "Live Edit Active";
-
-        // Enable contentEditable on text elements
-        document.querySelectorAll('.editable-text').forEach(el => {
-          el.setAttribute('contenteditable', 'true');
-        });
-
-        enableTabEditingListeners();
-        showToast("Edit mode active: click any text or drag photos onto images!");
-      } else {
-        body.classList.remove('is-editing');
-        toggleBtn.className = "flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-medium transition shadow-sm";
-        toggleBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i><span>Enable Edit Mode</span>';
-        badge.className = "bg-slate-800 text-slate-400 px-2 py-0.5 rounded text-xs border border-slate-700";
-        badge.textContent = "Preview Mode";
-
-        // Disable contentEditable
-        document.querySelectorAll('[contenteditable="true"]').forEach(el => {
-          el.removeAttribute('contenteditable');
-        });
-
-        showToast("Switched back to Preview Mode.");
-      }
-    }
-
     function saveSiteEdits() {
-      try {
-        const rootContent = document.getElementById('editableContentRoot').innerHTML;
-        localStorage.setItem('divine_it_page_html', rootContent);
-        localStorage.setItem('divine_it_tabs_data', JSON.stringify(tabsData));
-        showToast("All changes saved locally to your browser!");
-      } catch (err) {
-        console.error("Storage error:", err);
-        showToast("Could not save to localStorage (quota or security setting).");
-      }
-    }
-
-    function resetSiteEdits() {
-      if (localStorage.getItem('divine_it_page_html') || localStorage.getItem('divine_it_tabs_data')) {
-        localStorage.removeItem('divine_it_page_html');
-        localStorage.removeItem('divine_it_tabs_data');
-        showToast("Reset completed. Reloading default corporate template...");
-        setTimeout(() => {
-          window.location.reload();
-        }, 800);
-      } else {
-        showToast("Already using the default template.");
-      }
-    }
-
-    function loadSavedEdits() {
-      const savedTabs = localStorage.getItem('divine_it_tabs_data');
-      if (savedTabs) {
-        try {
-          tabsData = JSON.parse(savedTabs);
-          if (tabsData.length > 0) {
-            activeTabId = tabsData[0].id;
-          }
-        } catch (e) {
-          console.error("Error parsing saved tabs", e);
-        }
-      }
-
-      const savedHtml = localStorage.getItem('divine_it_page_html');
-      if (savedHtml) {
-        document.getElementById('editableContentRoot').innerHTML = savedHtml;
-      }
+      if (!isAdmin) return;
+      localStorage.setItem('divine_it_page_html', document.getElementById('editableContentRoot').innerHTML);
+      localStorage.setItem('divine_it_tabs_data', JSON.stringify(tabsData));
+      showToast("Edits saved permanently to browser storage!");
     }
 
     function exportSiteHtml() {
-      // Create a clean standalone clone of the document
       const docClone = document.documentElement.cloneNode(true);
-
-      // Reset editing mode markers in clone
-      docClone.querySelector('body').classList.remove('is-editing');
+      docClone.querySelector('body').classList.remove('is-admin-editing');
       docClone.querySelectorAll('[contenteditable="true"]').forEach(el => el.removeAttribute('contenteditable'));
+      
+      // Clean clone before downloading
+      const adminBar = docClone.querySelector('#adminBar');
+      if (adminBar) adminBar.remove();
 
-      // Remove admin bar for end-product distribution
-      const cloneAdminBar = docClone.querySelector('#adminBar');
-      if (cloneAdminBar) cloneAdminBar.remove();
-
-      const htmlContent = "<!DOCTYPE html>\n" + docClone.outerHTML;
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
+      const blob = new Blob(["<!DOCTYPE html>\n" + docClone.outerHTML], { type: 'text/html' });
       const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Divine-IT-Infrastructure-Customized.html';
-      document.body.appendChild(a);
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast("Exported customized HTML document!");
+      showToast("Downloaded updated index.html!");
     }
 
     function showToast(text) {
       const toast = document.getElementById('toastMessage');
       const toastText = document.getElementById('toastText');
       if (!toast || !toastText) return;
-      
       toastText.textContent = text;
       toast.classList.remove('translate-y-20', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
-
       setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-20', 'opacity-0');
@@ -1215,21 +842,33 @@
     }
 
     function toggleMobileMenu() {
-      const menu = document.getElementById('mobileMenu');
-      menu.classList.toggle('hidden');
+      document.getElementById('mobileMenu').classList.toggle('hidden');
     }
 
     function handleFormSubmit(e) {
       e.preventDefault();
-      showToast("Thank you! Your requirements have been submitted to our solutions desk.");
+      showToast("Inquiry submitted! Our solutions team will contact you.");
       e.target.reset();
     }
 
-    // Initialize application on window load
+    // Load persisted customizations
     window.addEventListener('DOMContentLoaded', () => {
-      loadSavedEdits();
-      renderTabs();
-      setupDropZones();
+      const savedTabs = localStorage.getItem('divine_it_tabs_data');
+      if (savedTabs) {
+        try { tabsData = JSON.parse(savedTabs); } catch(e){}
+      }
+      const savedHtml = localStorage.getItem('divine_it_page_html');
+      if (savedHtml) {
+        document.getElementById('editableContentRoot').innerHTML = savedHtml;
+      }
+      
+      // Check session
+      if (sessionStorage.getItem("divine_admin_auth") === "true") {
+        enableAdminState();
+      } else {
+        renderTabs();
+        setupDropZones();
+      }
     });
   </script>
 </body>
